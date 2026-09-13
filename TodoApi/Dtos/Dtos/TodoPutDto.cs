@@ -1,8 +1,6 @@
 namespace TodoApi.Dtos;
 
-public record TodoPostDto(
-    int Id,
+public record TodoPutDto(
     string Title,
     bool IsCompleted
-
 );
