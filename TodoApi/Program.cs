@@ -146,7 +146,9 @@ todoGroup.MapGet("/", async (AppDbContext db) =>
                             ));
     return todoGetDtos.Count() == 0 ? Results.NotFound() : Results.Ok(todoGetDtos);
  
-});
+})
+.RequireAuthorization();
+
 ;todoGroup.MapGet("/{id}", async (int id, AppDbContext db) =>
 {
     var todo = await db.Todos.FindAsync(id);
