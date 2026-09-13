@@ -2,11 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Components.Web;
+using Scalar.AspNetCore;
+using Microsoft.OpenApi;
 
 using TodoApi.Dtos;
 using TodoApi. Models;
 using TodoApi.Data;
-using Microsoft.AspNetCore.Components.Web;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Claims;
 using System.Text;
@@ -16,6 +18,24 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Components ??= new Microsoft.OpenApi.OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+        };
+
+        return Task.CompletedTask;
+    });
+});
+
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -51,6 +71,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
@@ -226,7 +247,8 @@ app.MapPost("/api/login", (LoginDto dto, IConfiguration configuration) =>
     var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
     return Results.Ok(new { Token = tokenString});
-}); 
+});
 
 #endregion
+
 app.Run();
