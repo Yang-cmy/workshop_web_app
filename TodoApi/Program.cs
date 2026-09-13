@@ -25,12 +25,12 @@ var todos = new List<TodoGetDto>
 
 app.MapGet("/api/todos", () => Results.Ok(todos));
 
-app.MapGet("/api/todos/{id}", (int id) => 
+app.MapGet("/api/todos/{id}", (int id) =>
 {
     var todo = todos.FirstOrDefault(t => t.Id == id);
 
     return todo is not null ? Results.Ok(todo) : Results.NotFound();
-    
+
 });
 
 app.MapPost("/api/todos", (TodoPostDto dto) =>
@@ -41,6 +41,28 @@ app.MapPost("/api/todos", (TodoPostDto dto) =>
     todos.Add(todo);
 
     return Results.Created($"/api/todos/{todo.Id}", todo);
+});
+
+app.MapPut("/api/todos/{id}", (int id, TodoPostDto dto) =>
+{
+    try
+    {
+        var index = todos.FindIndex(t => t.Id == id);
+        if (index == -1) return Results.NotFound();
+
+        todos[index] = todos[index] with
+        {
+            Title = dto.Title,
+            IsCompleted = dto.IsCompleted
+        };
+
+        return Results.Ok(todos[index]);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+
 });
 
 app.Run();
